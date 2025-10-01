@@ -4,7 +4,7 @@ resource "aws_db_subnet_group" "db" {
 
   tags = {
     Name        = "${var.team_name}-db-subnet-group"
-    Owner = var.asset_owner_name
+    Owner       = var.asset_owner_name
     Environment = var.environment
   }
 }

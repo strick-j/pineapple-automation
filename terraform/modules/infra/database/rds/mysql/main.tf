@@ -37,5 +37,11 @@ resource "aws_db_instance" "mysql" {
   storage_type           = "gp2"
   skip_final_snapshot    = true
 
-   tags = var.tags
+  tags = {
+    Name        = var.identifier
+    Owner       = var.asset_owner_name
+    CA_iScheduler = var.iScheduler
+    Environment = var.environment
+    CA_iCreateor_CreatorBy = var.iCreateor_CreatorBy
+  }
 }

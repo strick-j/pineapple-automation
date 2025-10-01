@@ -1,7 +1,6 @@
 variable "identifier" {
   description = "The DB instance identifier"
   type        = string
-  default = "pineapple-mysql"
 }
 
 variable "instance_class" {
@@ -19,7 +18,6 @@ variable "allocated_storage" {
 variable "db_name" {
   description = "Initial database name"
   type        = string
-  default = "music"
 }
 
 variable "db_subnet_group_name" {
@@ -48,8 +46,23 @@ variable "mysql_password" {
   type        = string
 }
 
-variable "tags" {
-  description = "A map of tags to assign to the resource"
-  type        = map(string)
-  default     = {}
+
+# AWS asset tags for compliance
+variable "iScheduler" {
+  description = "Identifier for the iScheduler environment"
+  type        = string
+}
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, prod)"
+  type        = string
+}
+
+variable "iCreateor_CreatorBy" {
+  description = "Identifier for the creator"
+  type        = string
+}
+variable "asset_owner_name" {
+  description = "Name of the human that the cloud team can contact with questions"
+  type = string
 }

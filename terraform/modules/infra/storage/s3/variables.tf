@@ -4,7 +4,7 @@ variable "region" {
   default     = "us-east-1"
 } 
 
-var "bucket_name" {
+variable "bucket_name" {
   description = "The name of the S3 bucket."
   type        = string
 }
@@ -15,8 +15,18 @@ variable "versioning" {
   default     = false
 }
 
-variable "tags" {
-  description = "A map of tags to assign to the bucket."
-  type        = map(string)
-  default     = {}
+variable "asset_owner_name" {
+  description = "The name of the asset owner."
+  type        = string
+}
+
+variable "allowed_ips" {
+  description = "Additional IPs/CIDRs allowed to access the bucket"
+  type        = list(string)
+  default     = []
+}
+
+variable "s3_vpc_endpoint_id" {
+  description = "ID of the S3 VPC endpoint to allow in the bucket policy"
+  type        = string
 }

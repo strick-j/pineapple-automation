@@ -1,4 +1,4 @@
-# VPC
+# VPC Configuration
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -7,6 +7,7 @@ resource "aws_vpc" "main" {
   tags = {
     Name = "${var.team_name}-vpc"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -18,6 +19,7 @@ resource "aws_vpc_dhcp_options" "custom_dns" {
   tags = {
     Name  = "${var.team_name}-dhcp-options"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -34,6 +36,7 @@ resource "aws_internet_gateway" "igw" {
   tags = {
     Name = "${var.team_name}-igw"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -45,8 +48,9 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.team_name}-public-subnet"
+    Name = "${var.team_name}-${var.environment}-public-subnet"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -58,16 +62,18 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.team_name}-private-subnet"
+    Name = "${var.team_name}-${var.environment}-private-subnet"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat_eip" {
     tags = {
-    Name = "${var.team_name}-nat-eip"
+    Name = "${var.team_name}-${var.environment}-nat-eip"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -77,8 +83,9 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.public.id
 
   tags = {
-    Name = "${var.team_name}-nat-gateway"
+    Name = "${var.team_name}-${var.environment}-nat-gateway"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -94,8 +101,9 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "${var.team_name}-public-rt"
+    Name = "${var.team_name}-${var.environment}-public-rt"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -115,8 +123,9 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "${var.team_name}-private-rt"
+    Name = "${var.team_name}-${var.environment}-private-rt"
     Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
   }
 }
 
@@ -132,5 +141,9 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private.id]
-  tags = { Name = "${var.team_name}-s3-gateway-endpoint" }
+  tags = { 
+    Name = "${var.team_name}-${var.environment}-s3-gateway-endpoint" 
+    Owner = var.asset_owner_name
+    Environment = "${var.team_name}-${var.environment}"
+  }
 }

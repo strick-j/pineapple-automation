@@ -1,4 +1,3 @@
-
 # General variables used in all modules
 variable "region" {
   description = "AWS cloud region for the deployment"
@@ -11,9 +10,14 @@ variable "team_name" {
   type = string
 }
 
-## Tag variables
+## Resource Tag variables
 variable "iScheduler" {
   description = "Identifier for the iScheduler environment"
+  type        = string
+}
+
+variable "iCreateor_CreatorBy" {
+  description = "Identifier for the creator"
   type        = string
 }
 
@@ -22,16 +26,29 @@ variable "asset_owner_name" {
   type = string
 }
 
+variable "environment" {
+  description = "Deployment environment (e.g., dev, prod)"
+  type        = string
+}
+
+variable "name" {
+  description = "Name of the resource"
+  type        = string
+}
+
+variable "dc1_private_ip" {
+  description = "Private IP address of the primary domain controller"
+  type        = string
+}
+
 # Networking specific variables
 variable "private_subnet_az" {
   description = "AWS identifier for the private subnet AZ"
-  default = "us-east-2b"
   type = string
 }
 
 variable "public_subnet_az" {
   description = "AWS identifier for the public subnet AZ"
-  default = "us-east-2a"
   type = string
 }
 
@@ -55,16 +72,30 @@ variable "trusted_ips" {
   type        = list(string)
 }
 
+## Compute Variables
+variable "linux_instance_type" {
+  description = "Instance type for the Linux target"
+  type        = string
+}
+
+variable "linux_hostname" {
+  description = "Hostname for the Linux instance"
+  type        = string
+}
+
+# CyberArk variables
+## SIA specific variables
 variable "connector_pool_name" {
   description = "Name of the CyberArk SIA connector pool"
   type        = string
 }
 
 variable "workspace_type" {
-  description = "CSP identifier. AWS, Azure, or GCP""
+  description = "CSP identifier. AWS, Azure, or GCP"
   type        = string
 }
 
+## ISPSS specific variables
 variable "identity_tenant_id" {
   description = "your cyberark tenant id. Example: 'https://abc1234.id.cyberark.cloud' woud be abc1234"
   type        = string
@@ -74,3 +105,4 @@ variable "platform_tenant_name" {
   description = "name of your cyberark tenant. Example: 'https://acme.cyberark.cloud' would be acme"
   type        = string
 }
+
