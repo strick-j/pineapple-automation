@@ -1,9 +1,15 @@
-variable "region" {
+# AWS provider variables
+variable "aws_region" {
   description = "The AWS region to create resources in."
   type        = string
-  default     = "us-east-1"
 } 
 
+variable "aws_profile" {
+  description = "AWS CLI profile to use"
+  type        = string
+}
+
+# Resource variables
 variable "bucket_name" {
   description = "The name of the S3 bucket."
   type        = string

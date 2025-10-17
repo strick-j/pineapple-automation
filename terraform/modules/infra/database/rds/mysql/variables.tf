@@ -66,3 +66,28 @@ variable "asset_owner_name" {
   description = "Name of the human that the cloud team can contact with questions"
   type = string
 }
+
+variable "conjur_appliance_url" {
+  description = "URL of the Conjur appliance"
+  type        = string
+}
+
+variable "conjur_account" {
+  description = "Conjur account name"
+  type        = string
+}
+
+variable "conjur_authn_type" {
+  description = "Conjur authentication type"
+  type        = string
+}
+
+variable "conjur_authn_service_id" {
+  description = "Conjur authentication service ID"
+  type        = string
+}
+
+variable "conjur_host_id" {
+  description = "Conjur host ID"
+  type        = string
+}
