@@ -1,8 +1,12 @@
 # General variables used in all modules
-variable "region" {
+variable "aws_region" {
   description = "AWS cloud region for the deployment"
-  default = "us-east-2"
   type = string
+}
+
+variable "aws_profile" {
+  description = "AWS CLI profile to use"
+  type        = string
 }
 
 variable "team_name" {
@@ -16,7 +20,7 @@ variable "iScheduler" {
   type        = string
 }
 
-variable "iCreateor_CreatorBy" {
+variable "iCreator_CreatorBy" {
   description = "Identifier for the creator"
   type        = string
 }
@@ -31,14 +35,14 @@ variable "environment" {
   type        = string
 }
 
-variable "name" {
-  description = "Name of the resource"
-  type        = string
-}
-
 variable "dc1_private_ip" {
   description = "Private IP address of the primary domain controller"
   type        = string
+}
+
+variable "allowed_ips" {
+  description = "List of allowed Ips for ACLS"
+  type        = list(string)
 }
 
 # Networking specific variables
@@ -106,3 +110,33 @@ variable "platform_tenant_name" {
   type        = string
 }
 
+variable "ubuntu_scripts_s3_bucket_path" {
+  description = "Path within the S3 bucket where the scripts are located"
+  type        = string
+}
+
+# SIA specific variables
+variable "service_id" {
+  description = "Service ID for SIA configuration"
+  type        = string
+}
+
+variable "host_id" {
+  description = "Host ID for Conjur Authentication configuration"
+  type        = string
+}
+
+variable "username_variable" {
+  description = "Username variable for Conjur retrieval"
+  type        = string
+}
+
+variable "password_variable" {
+  description = "Password variable for Conjur retrieval"
+  type        = string
+}
+
+variable "workspace_id" {
+  description = "Workspace ID for SIA configuration"
+  type        = string
+}
