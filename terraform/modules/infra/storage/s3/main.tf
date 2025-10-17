@@ -5,6 +5,10 @@ resource "aws_s3_bucket" "secure_bucket" {
     Name  = var.bucket_name
     Owner = var.asset_owner_name
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "block_public" {

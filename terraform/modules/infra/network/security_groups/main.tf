@@ -25,6 +25,10 @@ resource "aws_security_group" "ssh_from_trusted_ips" {
     Name  = "${var.team_name}-trusted-ip-ssh-sg"
     Owner = var.asset_owner_name
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "aws_security_group" "rdp_from_trusted_ips" {
@@ -53,6 +57,10 @@ resource "aws_security_group" "rdp_from_trusted_ips" {
   tags = {
     Name  = "${var.team_name}-trusted-ip-rdp-sg"
     Owner = var.asset_owner_name
+  }
+
+  lifecycle {
+    ignore_changes = [ tags ]
   }
 }
 
@@ -83,6 +91,10 @@ resource "aws_security_group" "ssh_internal_flat" {
     Name  = "${var.team_name}-trusted-ip-ssh-sg"
     Owner = var.asset_owner_name
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "aws_security_group" "rdp_internal_flat" {
@@ -111,6 +123,10 @@ resource "aws_security_group" "rdp_internal_flat" {
   tags = {
     Name  = "${var.team_name}-internal-flat-rdp-sg"
     Owner = var.asset_owner_name
+  }
+
+  lifecycle {
+    ignore_changes = [ tags ]
   }
 }
 
@@ -141,6 +157,10 @@ resource "aws_security_group" "winrm_internal_flat" {
     Name  = "${var.team_name}-internal-flat-winrm-sg"
     Owner = var.asset_owner_name
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "aws_security_group" "mysql_target_sg" {
@@ -164,7 +184,11 @@ resource "aws_security_group" "mysql_target_sg" {
   }
 
   tags = {
-    Name        = "${var.team_name}-mysql-sg"
+    Name = "${var.team_name}-mysql-sg"
+  }
+
+  lifecycle {
+    ignore_changes = [ tags ]
   }
 }
 
@@ -276,5 +300,9 @@ resource "aws_security_group" "domain_controller_sg" {
 
   tags = {
     Name = "${var.team_name}-controller-sg"
+  }
+
+  lifecycle {
+    ignore_changes = [ tags ]
   }
 }

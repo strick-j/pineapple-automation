@@ -9,6 +9,10 @@ resource "aws_vpc" "main" {
     Owner = var.asset_owner_name
     Environment = "${var.team_name}-${var.environment}"
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 # DHCP Options Set with custom + AWS DNS
@@ -52,6 +56,10 @@ resource "aws_subnet" "public" {
     Owner = var.asset_owner_name
     Environment = "${var.team_name}-${var.environment}"
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 # Private Subnet
@@ -66,14 +74,21 @@ resource "aws_subnet" "private" {
     Owner = var.asset_owner_name
     Environment = "${var.team_name}-${var.environment}"
   }
+
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat_eip" {
-    tags = {
+  tags = {
     Name = "${var.team_name}-${var.environment}-nat-eip"
     Owner = var.asset_owner_name
     Environment = "${var.team_name}-${var.environment}"
+  }
+  lifecycle {
+    ignore_changes = [ tags ]
   }
 }
 
