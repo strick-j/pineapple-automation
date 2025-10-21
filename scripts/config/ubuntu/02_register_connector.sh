@@ -493,14 +493,13 @@ BODY=$(sed '$d' <<<"${SETUP_RESPONSE}")
 http_response $HTTP_CODE $BODY
 
 # Decode the Base64 payload into bash_cmd
-base64_payload=$(jq -r '.base64_cmd' <<<"$SETUP_RESPONSE")
-if [[ -z "$base64_payload" || "$base64_payload" == "null" ]]; then
-  log_error "No 'base64_cmd' returned in setup response"
+bash_cmd=$(jq -r '.bash_cmd' <<<"$SETUP_RESPONSE")
+if [[ -z "$bash_cmd" || "$bash_cmd" == "null" ]]; then
+  log_error "No 'bash_cmd' returned in setup response"
   exit 3
 fi
 
 SETUP_LOG="${LOG_DIR}/setup_script.log"
-bash_cmd=$(echo "$base64_payload" | base64 --decode)
 log "Executing decoded registration script"
 eval "$bash_cmd" | tee -a ${SETUP_LOG}
 
