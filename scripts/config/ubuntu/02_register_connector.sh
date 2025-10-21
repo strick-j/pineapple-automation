@@ -172,7 +172,7 @@ http_response(){
   local RESPONSE="$2"
 
   # Check HTTP status code
-  if [[ "$HTTP_CODE" -eq 200 ]]; then
+  if [[ "$HTTP_CODE" -eq 200 || "$HTTP_CODE" -eq 201 ]]; then
     log "✓ API call successful"
     return 0
   elif [[ "$HTTP_CODE" -eq 401 ]]; then
@@ -192,6 +192,36 @@ http_response(){
     log_error "Response: ${RESPONSE}"
     exit 1
   fi
+}
+
+# Function to validate installation via bash_cmd completed successfully
+check_installation_completed() {
+    local FILE="$1"
+    
+    # Check if file exists
+    if [[ ! -f "$FILE" ]]; then
+        log_error "File '$file' not found"
+        return 1
+    fi
+    
+    # Check if file is readable
+    if [[ ! -r "$FILE" ]]; then
+        log_error "File '$FILE' is not readable"
+        return 1
+    fi
+    
+    # Read the last line of the file
+    local last_line=$(tail -n 1 "$FILE")
+    
+    # Check if last line contains "Installation Completed"
+    if [[ "$last_line" == "Installation Completed" ]]; then
+        log "✓ Installation completed successfully"
+        return 0
+    else
+        log_error "✗ Installation not completed"
+        log_error "Last line: $last_line"
+        return 1
+    fi
 }
 
 # ---------------------------------------------------------
@@ -419,10 +449,14 @@ CM_POOLS=$(curl -sk -w "\n%{http_code}" \
   -H "Authorization: Bearer ${PLATFORM_TOKEN}" \
   "https://${CM_DOMAIN}/api/connector-pools")
 
+echo $CM_POOLS
+
 # Validate response
 HTTP_CODE=$(tail -n1 <<<"${CM_POOLS}")
 BODY=$(sed '$d' <<<"${CM_POOLS}")
 http_response $HTTP_CODE $BODY
+
+echo $BODY
 
 POOL_ID=$(jq -r ".connectorPools[] \
   | select(.name==\"${CONNECTOR_POOL_NAME}\") | .poolId" <<<"$BODY")
