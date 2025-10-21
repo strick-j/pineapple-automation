@@ -64,26 +64,33 @@ module "cyberark_connectors" {
   connector_1_private_ip         = var.connector_1_private_ip
   sia_aws_connector_1_private_ip = var.sia_aws_connector_1_private_ip
 }
-
-module "linux_conector" {
-  source                         = "./modules/infra/compute/ec2/connectors/linux_connector"
-  private_subnet_id              = module.vpc.private_subnet_id
-  key_name                       = module.key_pair.key_name
-  team_name                      = var.team_name
-  linux_security_group_ids       = module.security_groups.ssh_internal_flat_sg_id
-  vpc_id                         = module.vpc.vpc_id
-  linux_ami_id                   = var.amzn_linux_ami_id
-  iScheduler                     = var.iScheduler
-  asset_owner_name               = var.asset_owner_name
-  sia_aws_connector_1_private_ip = var.sia_aws_connector_1_private_ip
-  region                         = var.region
-  connector_pool_name            = var.connector_pool_name
-  cyberark_secret_arn            = var.cyberark_secret_arn
-  identity_tenant_id             = var.identity_tenant_id
-  platform_tenant_name           = var.platform_tenant_name
-  ec2_asm_instance_profile_name  = module.ec2_asm_role.us_ent_east_ec2_asm_instance_profile_name
-}
 */
+module "linux_conector" {
+  source                          = "./modules/infra/compute/ec2/connectors/linux_connector"
+  private_subnet_id               = module.vpc.private_subnet_id
+  key_name                        = module.key_pair.key_name
+  iCreator_CreatorBy              = var.iCreator_CreatorBy
+  environment                     = var.environment
+  team_name                       = var.team_name
+  name                            = "${var.team_name}-linux-connector"
+  asset_owner_name                = var.asset_owner_name
+  linux_security_group_ids        = [module.security_groups.ssh_internal_flat_sg_id]
+  iScheduler                      = var.iScheduler
+  linux_hostname                  = var.linux_connector_hostname
+  linux_instance_type             = var.linux_instance_type
+  s3_bucket_name                  = module.s3_bucket.bucket_name
+  s3_bucket_path                  = var.ubuntu_scripts_s3_bucket_path
+  ec2_s3_ro_instance_profile_name = module.s3_ro_role.profile_name
+  aws_role_name                   = "${var.team_name}-ec2-s3-ro-role"
+  service_id                      = var.service_id
+  host_id                         = var.host_id
+  username_variable               = var.username_variable
+  password_variable               = var.password_variable
+  connector_pool_name             = var.connector_pool_name
+  identity_tenant_id              = var.identity_tenant_id
+  platform_tenant_name            = var.platform_tenant_name
+}
+
 module "linux_target" {
   source                          = "./modules/infra/compute/ec2/targets/linux_target"
   iCreator_CreatorBy              = var.iCreator_CreatorBy
@@ -95,7 +102,7 @@ module "linux_target" {
   iScheduler                      = var.iScheduler
   linux_security_group_ids        = [module.security_groups.ssh_internal_flat_sg_id]
   private_subnet_id               = module.vpc.private_subnet_id
-  linux_hostname                  = var.linux_hostname
+  linux_hostname                  = var.linux_target_hostname
   linux_instance_type             = var.linux_instance_type
   s3_bucket_name                  = module.s3_bucket.bucket_name
   s3_bucket_path                  = var.ubuntu_scripts_s3_bucket_path
