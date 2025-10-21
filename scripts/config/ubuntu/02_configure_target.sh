@@ -194,6 +194,36 @@ http_response(){
   fi
 }
 
+# Function to validate installation via bash_cmd completed successfully
+check_installation_completed() {
+    local FILE="$1"
+    
+    # Check if file exists
+    if [[ ! -f "$FILE" ]]; then
+        log_error "File '$file' not found"
+        return 1
+    fi
+    
+    # Check if file is readable
+    if [[ ! -r "$FILE" ]]; then
+        log_error "File '$FILE' is not readable"
+        return 1
+    fi
+    
+    # Read the last line of the file
+    local last_line=$(tail -n 1 "$FILE")
+    
+    # Check if last line contains "Installation Completed"
+    if [[ "$last_line" == "Installation Completed" ]]; then
+        log "✓ Installation completed successfully"
+        return 0
+    else
+        log_error "✗ Installation not completed"
+        log_error "Last line: $last_line"
+        return 1
+    fi
+}
+
 # ---------------------------------------------------------
 # Begin Main Script
 # ---------------------------------------------------------
@@ -412,13 +442,14 @@ SETUP_RESPONSE=$(curl -sk -X GET "$CONFIGURE_TARGET_API_URL" \
 # Decode the Base64 payload into bash_cmd
 base64_payload=$(jq -r '.base64_cmd' <<<"$SETUP_RESPONSE")
 if [[ -z "$base64_payload" || "$base64_payload" == "null" ]]; then
-  log_error "ERROR: No 'base64_cmd' returned in setup response"
+  log_error "No 'base64_cmd' returned in setup response"
   exit 3
 fi
 
+SETUP_LOG="${LOG_DIR}/setup_script.log"
 bash_cmd=$(echo "$base64_payload" | base64 --decode)
 log "Executing decoded setup script"
-eval "$bash_cmd" | tee -a ${LOG_DIR}/setup_script.log
+eval "$bash_cmd" | tee -a ${SETUP_LOG}
 
 # Invalidate token
 log "Logging out of Identity Platform"
@@ -431,7 +462,12 @@ else
   log_error "Failed to logout of Identity Platform"
 fi
 
-log "Connector registration completed successfully"
-
-# Mark done
-touch "${FLAG}"
+check_installation_completed "${SETUP_LOG}"
+if [[ $? -eq 0 ]]; then
+  log "Connector registration completed successfully"
+  # Mark done
+  touch "${FLAG}" 
+else
+    log_error "Connector registration did not complete properly"
+    exit 1
+fi
