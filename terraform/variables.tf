@@ -82,7 +82,12 @@ variable "linux_instance_type" {
   type        = string
 }
 
-variable "linux_hostname" {
+variable "linux_target_hostname" {
+  description = "Hostname for the Linux instance"
+  type        = string
+}
+
+variable "linux_connector_hostname" {
   description = "Hostname for the Linux instance"
   type        = string
 }
