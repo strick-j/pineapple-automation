@@ -1,4 +1,4 @@
-## Resource Tag Variables
+# Resource Tag Variables
 variable "asset_owner_name" {
   description = "Name of the human that the cloud team can contact with questions"
   type = string
@@ -24,7 +24,7 @@ variable "environment" {
   type        = string
 }
 
-## Resource configuration variables
+# EC2 Instance Configuration Variables
 variable "linux_instance_type" {
   description = "instance type to be deployed"
   type = string
