@@ -71,7 +71,7 @@ variable "s3_bucket_path" {
 
 # SIA
 variable "service_id" {
-  description = "Service ID for SIA configuration"
+  description = "Service ID for Conjur Authentication configuration"
   type        = string
 }
 
