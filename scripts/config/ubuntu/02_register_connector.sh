@@ -213,8 +213,9 @@ check_installation_completed() {
     # Read the last line of the file
     local last_line=$(tail -n 1 "$FILE")
     
-    # Check if last line contains "Installation Completed"
-    if [[ "$last_line" == "Installation Completed" ]]; then
+    # Check if last line contains "Installation Complete."
+    if [[ "$last_line" == "Installation Completed" || \
+          "$last_line" == "Installation Complete." ]]; then
         log "✓ Installation completed successfully"
         return 0
     else
@@ -312,7 +313,6 @@ SERVICE="sts"
 HOST="${SERVICE}.amazonaws.com"
 
 # Empty payload for IAM request
-CONTENT="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 METHOD="GET"
 CANONICAL_URI="/"
 CANONICAL_QUERY="$(urlencode "Action")=$(urlencode "GetCallerIdentity")"
@@ -320,12 +320,13 @@ CANONICAL_QUERY+="&$(urlencode "Version")=$(urlencode "2011-06-15")"
 HEADER_HOST="host:${HOST}"
 HEADER_X_AMZ_DATE="x-amz-date:${fulldate}"
 HEADER_X_AMZ_SECURITY_TOKEN="x-amz-security-token:${SESSION_TOKEN}"
-CANONICAL_HEADERS="${HEADER_HOST}\n${HEADER_X_AMZ_DATE}\n${HEADER_X_AMZ_SECURITY_TOKEN}"
-REQUEST_PAYLOAD="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+CANONICAL_HEADERS="${HEADER_HOST}\n${HEADER_X_AMZ_DATE}\n"
+CANONICAL_HEADERS+="${HEADER_X_AMZ_SECURITY_TOKEN}"
+REQ_PAYLOAD="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 SIGNED_HEADERS="host;x-amz-date;x-amz-security-token"
 
-CANONICAL_REQUEST="${METHOD}\n${CANONICAL_URI}\n${CANONICAL_QUERY}"
-CANONICAL_REQUEST+="\n${CANONICAL_HEADERS}\n\n${SIGNED_HEADERS}\n${REQUEST_PAYLOAD}"
+CANONICAL_REQUEST="${METHOD}\n${CANONICAL_URI}\n${CANONICAL_QUERY}\n"
+CANONICAL_REQUEST+="${CANONICAL_HEADERS}\n\n${SIGNED_HEADERS}\n${REQ_PAYLOAD}"
 HASHED_CANONICAL_REQUEST=$(sha256Hash "${CANONICAL_REQUEST}")
 
 log "Hashed Canonical Request: ${HASHED_CANONICAL_REQUEST}"
@@ -449,14 +450,10 @@ CM_POOLS=$(curl -sk -w "\n%{http_code}" \
   -H "Authorization: Bearer ${PLATFORM_TOKEN}" \
   "https://${CM_DOMAIN}/api/connector-pools")
 
-echo $CM_POOLS
-
 # Validate response
 HTTP_CODE=$(tail -n1 <<<"${CM_POOLS}")
 BODY=$(sed '$d' <<<"${CM_POOLS}")
 http_response $HTTP_CODE $BODY
-
-echo $BODY
 
 POOL_ID=$(jq -r ".connectorPools[] \
   | select(.name==\"${CONNECTOR_POOL_NAME}\") | .poolId" <<<"$BODY")
@@ -482,7 +479,8 @@ EOF
 )
 
 log "Requesting setup script from ${REGISTRATION_API_URL}"
-SETUP_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST "$REGISTRATION_API_URL" \
+SETUP_RESPONSE=$(curl -sk -w "\n%{http_code}" \
+  -X POST "$REGISTRATION_API_URL" \
   -H "Authorization: Bearer ${PLATFORM_TOKEN}" \
   -H "Content-Type: application/json" \
   -d "${REGISTRATION_PAYLOAD}")

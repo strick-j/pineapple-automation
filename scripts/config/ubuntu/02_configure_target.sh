@@ -172,7 +172,7 @@ http_response(){
   local RESPONSE="$2"
 
   # Check HTTP status code
-  if [[ "$HTTP_CODE" -eq 200 ]]; then
+  if [[ "$HTTP_CODE" -eq 200 || "$HTTP_CODE" -eq 201 ]]; then
     log "✓ API call successful"
     return 0
   elif [[ "$HTTP_CODE" -eq 401 ]]; then
@@ -277,7 +277,8 @@ log "=========================================="
 log "Retrieving host role from IMDS..."
 
 IMDS_TOKEN_URL="http://169.254.169.254/latest/api/token"
-IMDS_URL="http://169.254.169.254/latest/meta-data/iam/security-credentials/${AWS_ROLE_NAME}"
+IMDS_URL="http://169.254.169.254/latest/"
+IMDS_URL+="meta-data/iam/security-credentials/${AWS_ROLE_NAME}"
 # Retrieve IAM information from IMDS to be used in STS signing request
 log "Requesting AWS credentials from IMDS URL: ${IMDS_TOKEN_URL}"
 TOKEN=$(curl -sS -X PUT "${IMDS_TOKEN_URL}" \
@@ -312,24 +313,27 @@ SERVICE="sts"
 HOST="${SERVICE}.amazonaws.com"
 
 # Empty payload for IAM request
-CONTENT="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 METHOD="GET"
 CANONICAL_URI="/"
-CANONICAL_QUERY="$(urlencode "Action")=$(urlencode "GetCallerIdentity")&$(urlencode "Version")=$(urlencode "2011-06-15")"
+CANONICAL_QUERY="$(urlencode "Action")=$(urlencode "GetCallerIdentity")"
+CANONICAL_QUERY+="&$(urlencode "Version")=$(urlencode "2011-06-15")"
 HEADER_HOST="host:${HOST}"
 HEADER_X_AMZ_DATE="x-amz-date:${fulldate}"
 HEADER_X_AMZ_SECURITY_TOKEN="x-amz-security-token:${SESSION_TOKEN}"
-CANONICAL_HEADERS="${HEADER_HOST}\n${HEADER_X_AMZ_DATE}\n${HEADER_X_AMZ_SECURITY_TOKEN}"
-REQUEST_PAYLOAD="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+CANONICAL_HEADERS="${HEADER_HOST}\n${HEADER_X_AMZ_DATE}\n"
+CANONICAL_HEADERS+="${HEADER_X_AMZ_SECURITY_TOKEN}"
+REQ_PAYLOAD="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 SIGNED_HEADERS="host;x-amz-date;x-amz-security-token"
 
-CANONICAL_REQUEST="${METHOD}\n${CANONICAL_URI}\n${CANONICAL_QUERY}\n${CANONICAL_HEADERS}\n\n${SIGNED_HEADERS}\n${REQUEST_PAYLOAD}"
+CANONICAL_REQUEST="${METHOD}\n${CANONICAL_URI}\n${CANONICAL_QUERY}\n"
+CANONICAL_REQUEST+="${CANONICAL_HEADERS}\n\n${SIGNED_HEADERS}\n${REQ_PAYLOAD}"
 HASHED_CANONICAL_REQUEST=$(sha256Hash "${CANONICAL_REQUEST}")
 
 log "Hashed Canonical Request: ${HASHED_CANONICAL_REQUEST}"
 log "Creating String to Sign"
 ALGO="AWS4-HMAC-SHA256"
-STRING_TO_SIGN="${ALGO}\n${fulldate}\n${shortdate}/${REGION}/${SERVICE}/aws4_request\n${HASHED_CANONICAL_REQUEST}"
+STRING_TO_SIGN="${ALGO}\n${fulldate}\n${shortdate}/${REGION}"
+STRING_TO_SIGN+="/${SERVICE}/aws4_request\n${HASHED_CANONICAL_REQUEST}"
 log "String to Sign: ${STRING_TO_SIGN}"
 
 log "Calculating Signature"
@@ -372,10 +376,18 @@ JSON_PAYLOAD=$(cat <<EOF
 EOF
 )
 
+# Define Conjur authentication path
+CONJUR_PATH="authn-iam/${SERVICE_ID}/${CONJUR_ACCOUNT}"
 ENCODED_HOST_ID=$(urlencode "$HOST_ID")
+CONJUR_PATH+="/${ENCODED_HOST_ID}/authenticate"
 
-CONJUR_AUTH_RESPONSE=$(curl -s -w "\n%{http_code}" -H "content-type: application/json" -H "accept-encoding: base64" \
-  -d "${JSON_PAYLOAD}" "${CONJUR_URL}/authn-iam/${SERVICE_ID}/${CONJUR_ACCOUNT}/${ENCODED_HOST_ID}/authenticate")
+# Attempt Conjur Authentication
+CONJUR_AUTH_RESPONSE=$(curl -s -w "\n%{http_code}" \
+  -H "content-type: application/json" \
+  -H "accept-encoding: base64" \
+  -d "${JSON_PAYLOAD}" \
+  "${CONJUR_URL}/${CONJUR_PATH}")
+
 # Extract HTTP status code (last line)
 HTTP_CODE=$(echo "$CONJUR_AUTH_RESPONSE" | tail -n1)
 CONJUR_TOKEN=$(sed '$d' <<< "$CONJUR_AUTH_RESPONSE")
@@ -389,8 +401,10 @@ ENCODED_PASSWORD_VARIABLE=$(urlencode "${PASSWORD_VARIABLE}")
 
 # Construct the API endpoints
 # Format: /secrets/{account}/{kind}/{identifier}
-PASSWORD_API_ENDPOINT="${CONJUR_URL}/secrets/${CONJUR_ACCOUNT}/${CONJUR_KIND}/${ENCODED_PASSWORD_VARIABLE}"
-USERNAME_API_ENDPOINT="${CONJUR_URL}/secrets/${CONJUR_ACCOUNT}/${CONJUR_KIND}/${ENCODED_USERNAME_VARIABLE}"
+PASSWORD_API_ENDPOINT="${CONJUR_URL}/secrets/${CONJUR_ACCOUNT}"
+PASSWORD_API_ENDPOINT+="/${CONJUR_KIND}/${ENCODED_PASSWORD_VARIABLE}"
+USERNAME_API_ENDPOINT="${CONJUR_URL}/secrets/${CONJUR_ACCOUNT}"
+USERNAME_API_ENDPOINT+="/${CONJUR_KIND}/${ENCODED_USERNAME_VARIABLE}"
 
 log "Retrieving secret from Conjur Cloud..."
 # Retrieve the password
@@ -430,7 +444,9 @@ http_response $HTTP_CODE $BODY
 PLATFORM_TOKEN=$(jq -r '.access_token // empty' <<<"$BODY")
 log "Parsed access_token: ${PLATFORM_TOKEN:0:50}..."
 
-CONFIGURE_TARGET_API_URL="https://${PLATFORM_TENANT_NAME}.dpa.cyberark.cloud/api/public-keys/scripts"
+# Construct SIA script retreival URL and request configuration script
+SIA_API_URL="https://${PLATFORM_TENANT_NAME}.dpa.cyberark.cloud/api"
+CONFIGURE_TARGET_API_URL="${SIA_API_URL}/public-keys/scripts"
 log "Requesting setup script from ${CONFIGURE_TARGET_API_URL}"
 SETUP_RESPONSE=$(curl -sk -X GET "$CONFIGURE_TARGET_API_URL" \
   -H "Authorization: Bearer ${PLATFORM_TOKEN}" \
