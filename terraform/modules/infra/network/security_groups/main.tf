@@ -164,7 +164,7 @@ resource "aws_security_group" "winrm_internal_flat" {
 }
 
 resource "aws_security_group" "mysql_target_sg" {
-  name        = "${var.team_name}-MYSQL-SG"
+  name        = "${var.team_name}-mysql-sg"
   description = "Allow MySQL from private subnets only"
   vpc_id      = var.vpc_id
 
