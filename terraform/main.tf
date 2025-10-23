@@ -26,6 +26,18 @@ module "s3_bucket" {
   allowed_ips        = var.allowed_ips
 }
 
+locals {
+  source_directory = "../scripts"
+}
+
+resource "aws_s3_object" "multiple_files" {
+  for_each = fileset(local.source_directory, "**/*")
+  bucket   = module.s3_bucket.bucket_name
+  key      = "${each.value}"
+  source   = "${local.source_directory}/${each.value}"
+  etag     = filemd5("${local.source_directory}/${each.value}") # Triggers update on file change
+}
+
 module "key_pair" {
   source           = "./modules/security/key_pair"
   server_key_name  = "${var.team_name}-key"
@@ -118,7 +130,6 @@ module "linux_target" {
   workspace_type                  = var.workspace_type
 }
 
-/*
 module "mysql_subnet_group" {
   source             = "./modules/infra/network/subnets/database/rds/mysql_subnet_group"
   team_name          = var.team_name
@@ -126,9 +137,9 @@ module "mysql_subnet_group" {
   asset_owner_name   = var.asset_owner_name
   private_subnet_ids = [module.vpc.private_subnet_id, module.vpc.public_subnet_id]
 }
-
+/*
 module "mysql" {
-  source                 = "./modules/infrastructure/rds/mysql"
+  source                 = "./modules/infra/database/rds/mysql"
   name                   = "${var.team_name}-mysql"
   iScheduler             = var.iScheduler
   environment            = "${var.team_name}-${var.environment}"
