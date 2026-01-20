@@ -130,6 +130,8 @@ module "linux_target" {
   workspace_type                  = var.workspace_type
 }
 
+
+## MySQL Resource Creation
 module "mysql_subnet_group" {
   source             = "./modules/infra/network/subnets/database/rds/mysql_subnet_group"
   team_name          = var.team_name
@@ -137,6 +139,7 @@ module "mysql_subnet_group" {
   asset_owner_name   = var.asset_owner_name
   private_subnet_ids = [module.vpc.private_subnet_id, module.vpc.public_subnet_id]
 }
+
 /*
 module "mysql" {
   source                 = "./modules/infra/database/rds/mysql"
@@ -146,4 +149,8 @@ module "mysql" {
   db_subnet_group_name   = module.mysql_subnet_group.mysql_subnet_group_name
   asset_owner_name       = var.asset_owner_name
   vpc_security_group_ids = [module.security_groups.mysql_target_sg_id]
-}*/
+  mysql_password = var.mysql_password
+  mysql_username = var.mysql_username
+
+}
+*/

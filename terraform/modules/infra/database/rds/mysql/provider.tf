@@ -4,6 +4,7 @@ terraform {
       source = "cyberark/conjur"
       version = "~> 0.7"
     }
+    
   }
 }
 
